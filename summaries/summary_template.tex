@@ -1,0 +1,37 @@
+\documentclass[11pt,letterpaper]{article}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{fontawesome5}
+\usepackage{tcolorbox}
+\usepackage{multicol}
+\usepackage{enumitem}
+\usepackage{qrcode}
+\usepackage{hyperref}
+
+% Colors
+\definecolor{primaryblue}{RGB}{41, 98, 255}
+\definecolor{accentgreen}{RGB}{0, 150, 136}
+\definecolor{warnorange}{RGB}{255, 152, 0}
+\definecolor{lightgray}{RGB}{245, 245, 245}
+
+% Box styles
+\tcbset{
+    conceptbox/.style={colback=primaryblue!5, colframe=primaryblue,
+                       boxrule=1pt, arc=3pt, left=5pt, right=5pt, top=5pt, bottom=5pt},
+    formulabox/.style={colback=lightgray, colframe=gray!50,
+                       boxrule=0.5pt, arc=2pt, left=5pt, right=5pt, top=3pt, bottom=3pt},
+    warningbox/.style={colback=warnorange!10, colframe=warnorange,
+                       boxrule=1pt, arc=3pt, left=5pt, right=5pt, top=5pt, bottom=5pt},
+    appbox/.style={colback=accentgreen!5, colframe=accentgreen,
+                   boxrule=1pt, arc=3pt, left=5pt, right=5pt, top=5pt, bottom=5pt}
+}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlist[itemize]{leftmargin=*, itemsep=2pt, topsep=2pt}
+
+\begin{document}
+% Content will be inserted here for each chapter
+\end{document}
