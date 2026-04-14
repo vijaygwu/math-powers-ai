@@ -80,9 +80,9 @@
     \draw[->,thick] (a) -- (L);
 
     % Backward arrows
-    \draw[->,red,dashed,thick] (L) to[bend right=30] node[below]{\tiny $\frac{\partial L}{\partial a}$} (a);
-    \draw[->,red,dashed,thick] (a) to[bend right=30] node[below]{\tiny $\frac{\partial a}{\partial z}$} (z);
-    \draw[->,red,dashed,thick] (z) to[bend right=30] node[left]{\tiny $\frac{\partial z}{\partial w}$} (w);
+    \draw[->,red,dashed,thick] (L) to[bend right=30] node[below]{\scriptsize $\frac{\partial L}{\partial a}$} (a);
+    \draw[->,red,dashed,thick] (a) to[bend right=30] node[below]{\scriptsize $\frac{\partial a}{\partial z}$} (z);
+    \draw[->,red,dashed,thick] (z) to[bend right=30] node[left]{\scriptsize $\frac{\partial z}{\partial w}$} (w);
 
     \node at (3,-0.8) {\small Backpropagation = Chain Rule};
 \end{tikzpicture}
