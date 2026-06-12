@@ -7,7 +7,6 @@ visualizations of loss landscapes, optimization paths, and convergence behavior.
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import cm
 from typing import Callable, List, Optional, Tuple, Dict
 
 
@@ -48,6 +47,14 @@ def plot_loss_landscape(
     plt.Axes
         The matplotlib axes object.
 
+    Notes
+    -----
+    When ``ax`` is None this creates a new figure that the caller
+    owns. The figure is intentionally left open so it can be shown
+    or returned; callers that generate many plots in a loop should
+    close it (e.g. ``plt.close(ax.figure)``) to avoid leaking
+    figures and Matplotlib's "more than 20 figures opened" warning.
+
     Example
     -------
     >>> def rosenbrock(x):
@@ -56,13 +63,17 @@ def plot_loss_landscape(
     >>> plt.show()
     """
     if ax is None:
-        fig, ax = plt.subplots(figsize=(10, 8))
+        _, ax = plt.subplots(figsize=(10, 8))
 
     x = np.linspace(x_range[0], x_range[1], resolution)
     y = np.linspace(y_range[0], y_range[1], resolution)
     X, Y = np.meshgrid(x, y)
 
-    # Compute loss at each point
+    # Compute loss at each grid point. Note: this calls f once
+    # per point, i.e. resolution**2 scalar evaluations (10,000
+    # by default). That is fine for a one-off book figure but
+    # slow for interactive/high-resolution use; if f is
+    # vectorizable, evaluate it on the stacked grid instead.
     Z = np.zeros_like(X)
     for i in range(resolution):
         for j in range(resolution):
@@ -119,17 +130,31 @@ def plot_optimization_path(
         The matplotlib axes object.
     """
     if ax is None:
-        fig, ax = plt.subplots(figsize=(10, 8))
+        _, ax = plt.subplots(figsize=(10, 8))
 
     path_array = np.array(path)
+
+    # Validate shape: this plotter only handles 2D paths of
+    # shape (N, 2). Higher-dimensional optimizations cannot be
+    # drawn on a 2D landscape.
+    if path_array.ndim != 2 or path_array.shape[1] != 2:
+        raise ValueError(
+            "path must be a sequence of 2D points with shape "
+            f"(N, 2); got array of shape {path_array.shape}."
+        )
+    if path_array.shape[0] == 0:
+        raise ValueError("path must contain at least one point.")
 
     # Plot the path
     ax.plot(path_array[:, 0], path_array[:, 1],
             color=color, linewidth=line_width, alpha=alpha, label=label)
 
-    # Plot intermediate points
-    ax.scatter(path_array[1:-1, 0], path_array[1:-1, 1],
-               color=color, s=marker_size//2, alpha=alpha*0.5, zorder=5)
+    # Plot intermediate points (skip when the path is too short
+    # to have any interior points, e.g. length 1 or 2).
+    if path_array.shape[0] > 2:
+        ax.scatter(path_array[1:-1, 0], path_array[1:-1, 1],
+                   color=color, s=marker_size//2,
+                   alpha=alpha*0.5, zorder=5)
 
     if show_start_end:
         # Mark start point
@@ -173,12 +198,17 @@ def plot_convergence(
         The matplotlib axes object.
     """
     if ax is None:
-        fig, ax = plt.subplots(figsize=(10, 6))
+        _, ax = plt.subplots(figsize=(10, 6))
 
     colors = plt.cm.tab10(np.linspace(0, 1, len(paths)))
 
     for (name, path), color in zip(paths.items(), colors):
         losses = [f(x) for x in path]
+        if log_scale:
+            # Log scale silently drops non-positive values; floor
+            # exact zeros (a legitimate converged loss) so the
+            # curve stays visible.
+            losses = list(np.maximum(losses, 1e-16))
         ax.plot(losses, label=name, color=color, linewidth=2)
 
     ax.set_xlabel('Iteration', fontsize=12)
@@ -278,7 +308,7 @@ def plot_gradient_field(
         The matplotlib axes object.
     """
     if ax is None:
-        fig, ax = plt.subplots(figsize=(10, 8))
+        _, ax = plt.subplots(figsize=(10, 8))
 
     x = np.linspace(x_range[0], x_range[1], resolution)
     y = np.linspace(y_range[0], y_range[1], resolution)
@@ -287,6 +317,13 @@ def plot_gradient_field(
     # Compute gradients
     U = np.zeros_like(X)
     V = np.zeros_like(Y)
+
+    first = np.asarray(grad_fn(np.array([X[0, 0], Y[0, 0]])))
+    if first.shape != (2,):
+        raise ValueError(
+            "grad_fn must return a gradient of shape (2,) for a "
+            f"2D field; got shape {first.shape}."
+        )
 
     for i in range(resolution):
         for j in range(resolution):
